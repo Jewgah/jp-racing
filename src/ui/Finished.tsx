@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { useStore } from '../store'
-import { getDriverName, getScores, insertScore, setDriverName } from '../data'
+import { getDriverName, getScores, insertScore, MIN_VALID_TIME, setDriverName } from '../data'
 import { readableTime, Scores } from './LeaderBoard'
 import type { SavedScore } from '../data'
 
@@ -24,7 +24,7 @@ export const Finished = () => {
     setScores(getScores(10))
   }
 
-  const isRecord = previousBest === undefined || time < previousBest
+  const isRecord = time > MIN_VALID_TIME && (previousBest === undefined || time < previousBest)
 
   return (
     <div className="finished">
