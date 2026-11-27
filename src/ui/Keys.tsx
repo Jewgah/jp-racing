@@ -6,19 +6,19 @@ import { setState, useStore } from '../store'
 import type { ActionInputMap, BindableActionName } from '../store'
 
 const inputDisplayNameMap = {
-  alt: 'Alt ⌥',
-  arrowdown: '↓',
-  arrowleft: '←',
-  arrowright: '→',
-  arrowup: '↑',
-  backspace: 'Backspace ⌫',
-  capslock: 'CapsLock ⇪',
-  control: 'Control ⌃',
-  enter: 'Enter ↵',
-  meta: 'Meta ⌘',
-  shift: 'Shift ⇧',
-  ' ': 'Space ␣',
-  tab: 'Tab ⇥',
+  alt: 'Alt',
+  arrowdown: '\u25BC',
+  arrowleft: '\u25C0',
+  arrowright: '\u25B6',
+  arrowup: '\u25B2',
+  backspace: 'Backspace',
+  capslock: 'CapsLock',
+  control: 'Ctrl',
+  enter: 'Enter',
+  meta: 'Meta',
+  shift: 'Shift',
+  ' ': 'Space',
+  tab: 'Tab',
 } as const
 
 type InputWithDisplayName = keyof typeof inputDisplayNameMap
@@ -50,7 +50,7 @@ type RowProps = {
   onRemove: (actionName: BindableActionName, inpput: string) => void
 }
 
-function Row({ actionName, hasError, inputs, onAdd, onRemove }: RowProps): JSX.Element {
+function Row({ actionName, hasError, inputs, onAdd, onRemove }: RowProps) {
   return (
     <div className={`keys-row popup-item${hasError ? ' with-error' : ''}`}>
       <div>{actionDisplayMap[actionName].displayName}</div>
@@ -108,7 +108,7 @@ function Rows({ onAdd }: { onAdd: (actionName: BindableActionName) => void }) {
 
 type KeyInputProps = { onKeyup: (event: KeyboardEvent) => void }
 
-function KeyInput({ onKeyup }: KeyInputProps): JSX.Element {
+function KeyInput({ onKeyup }: KeyInputProps) {
   useEffect(() => {
     window.addEventListener('keyup', onKeyup, { passive: true })
 
@@ -126,7 +126,7 @@ function KeyInput({ onKeyup }: KeyInputProps): JSX.Element {
 
 type KeysProps = HTMLAttributes<HTMLDivElement>
 
-export function Keys(props: KeysProps): JSX.Element {
+export function Keys(props: KeysProps) {
   const [selectedAction, setSelectedAction] = useState<BindableActionName | null>(null)
   const [actions, binding] = useStore(({ actions, binding }) => [actions, binding])
   const onAdd = useCallback(

@@ -5,7 +5,7 @@ import { mutation } from '../../store'
 
 const getSpeed = () => `${mutation.speed.toFixed()}`
 
-export const Text = (): JSX.Element => {
+export const Text = () => {
   const ref = useRef<HTMLSpanElement>(null)
 
   let speed = getSpeed()

@@ -1,19 +1,20 @@
 import { Suspense, useEffect, useState } from 'react'
-import { Footer } from '@pmndrs/branding'
 import { useProgress } from '@react-three/drei'
 
 import type { ReactNode } from 'react'
 
 import { useStore } from '../store'
-import { setupSession, unAuthenticateUser } from '../data'
+import { getBestTime } from '../data'
+import { readableTime } from './LeaderBoard'
 import { Keys } from './Keys'
-import { Auth } from './Auth'
+import { Credit } from './Credit'
 
-export function Intro({ children }: { children: ReactNode }): JSX.Element {
+export function Intro({ children }: { children: ReactNode }) {
   const [clicked, setClicked] = useState(false)
   const [loading, setLoading] = useState(true)
   const { progress } = useProgress()
-  const [session, set] = useStore((state) => [state.session, state.set])
+  const set = useStore((state) => state.set)
+  const [best] = useState(getBestTime)
 
   useEffect(() => {
     if (clicked && !loading) set({ ready: true })
@@ -23,38 +24,32 @@ export function Intro({ children }: { children: ReactNode }): JSX.Element {
     if (progress === 100) setLoading(false)
   }, [progress])
 
-  useEffect(() => {
-    setupSession(set)
-  }, [])
-
   return (
     <>
       <Suspense fallback={null}>{children}</Suspense>
-      <div className={`fullscreen bg ${loading ? 'loading' : 'loaded'} ${clicked && 'clicked'}`}>
-        <div className="stack">
-          <div className="intro-keys">
-            <Keys style={{ paddingBottom: 20 }} />
-            <a className="start-link" href="#" onClick={() => setClicked(true)}>
-              {loading ? `loading ${progress.toFixed()} %` : 'Click to start'}
-            </a>
+      <div className={`fullscreen bg ${loading ? 'loading' : 'loaded'} ${clicked ? 'clicked' : ''}`}>
+        <div className="intro">
+          <div className="intro-brand">
+            <p className="eyebrow">
+              <span className="dot" /> A React Three Fiber driving showcase
+            </p>
+            <h1 className="intro-title">
+              JP <span>Racing</span>
+            </h1>
+            <p className="intro-sub">
+              By <a href="https://jordanperez.dev">Jordan Perez</a>. Rebuilt on React 19, R3F 9 and three r187.
+            </p>
+            {best !== null && <p className="intro-best">Your best lap: {readableTime(best)}s</p>}
+            <button className="btn btn-primary start-link" disabled={loading} onClick={() => setClicked(true)}>
+              {loading ? `Loading ${progress.toFixed()}%` : 'Start engine'}
+            </button>
           </div>
-          {session?.user?.aud !== 'authenticated' ? (
-            <Auth />
-          ) : (
-            <div>
-              Hello {session.user.user_metadata.full_name}
-              <button className="logout" onClick={unAuthenticateUser}>
-                Logout
-              </button>{' '}
-            </div>
-          )}
+          <div className="intro-keys glass hud-corners">
+            <p className="panel-title">Controls</p>
+            <Keys />
+          </div>
         </div>
-        <Footer
-          date="2. June"
-          year="2021"
-          link1={<a href="https://github.com/pmndrs/react-three-fiber">@react-three/fiber</a>}
-          link2={<a href="https://github.com/pmndrs/racing-game">/racing-game</a>}
-        />
+        <Credit />
       </div>
     </>
   )

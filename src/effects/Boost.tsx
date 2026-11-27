@@ -5,6 +5,7 @@ import { useFrame } from '@react-three/fiber'
 import type { InstancedMesh } from 'three'
 
 import { mutation, getState } from '../store'
+import { useHiddenInstances } from './useHiddenInstances'
 
 const o = new Object3D()
 const positions = [new Vector3(-0.4, -0.5, -1.8), new Vector3(0.4, -0.5, -1.8)] as const
@@ -15,8 +16,9 @@ interface BoostProps {
   size?: number
 }
 
-export function Boost({ count = 12, opacity = 0.5, size = 0.1 }: BoostProps): JSX.Element {
+export function Boost({ count = 12, opacity = 0.5, size = 0.1 }: BoostProps) {
   const ref = useRef<InstancedMesh>(null)
+  useHiddenInstances(ref, count)
 
   let i: number
   let isBoosting = false

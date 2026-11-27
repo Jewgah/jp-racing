@@ -2,7 +2,7 @@ import { Boost } from './Boost'
 import { Gauge } from './Gauge'
 import { Text } from './Text'
 
-export function Speed(): JSX.Element {
+export function Speed() {
   return (
     <div className="speed">
       <Gauge />

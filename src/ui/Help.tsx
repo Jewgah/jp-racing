@@ -2,7 +2,7 @@ import { useStore } from '../store'
 
 import { Keys } from './Keys'
 
-export function Help(): JSX.Element {
+export function Help() {
   const [set, help, sound] = useStore((state) => [state.set, state.help, state.sound])
 
   return (

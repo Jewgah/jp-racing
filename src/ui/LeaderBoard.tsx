@@ -7,24 +7,25 @@ import { useStore } from '../store'
 
 import type { SavedScore } from '../data'
 
-export function LeaderBoard(): JSX.Element {
+export function LeaderBoard() {
   const [scores, setScores] = useState<SavedScore[]>([])
-  const [last, setLast] = useState(0)
   const [leaderboard, set] = useStore((state) => [state.leaderboard, state.set])
-  const close = () => set((state) => ({ ...state, leaderboard: false }))
+  const close = () => set({ leaderboard: false })
 
   useEffect(() => {
-    if (!leaderboard || Date.now() - last < 3000) return
-    getScores(10).then(setScores)
-    setLast(Date.now())
+    if (leaderboard) setScores(getScores(10))
   }, [leaderboard])
 
   return (
     <div className={`leaderboard popup ${leaderboard ? 'open' : ''}`}>
-      <button className="popup-close" onClick={close}>
+      <button className="popup-close" onClick={close} aria-label="Close leaderboard">
         L
       </button>
-      <Scores className="popup-content leaderboard-bottom" scores={scores} />
+      <div className="popup-content">
+        <h2 className="panel-title">Best laps</h2>
+        <p className="panel-sub">Stored on this device</p>
+        {scores.length ? <Scores className="leaderboard-list" scores={scores} /> : <p className="panel-empty">No laps yet. Cross the finish line to set one.</p>}
+      </div>
     </div>
   )
 }
@@ -35,40 +36,26 @@ const standingToImage: Record<1 | 2 | 3, string> = {
   3: 'images/bronze.png',
 }
 
-interface ScoreProps {
-  name: string
-  standing: number
-  time: number
-}
-
 export const readableTime = (time: number): string => (time / 1000).toFixed(2)
 
-interface ScoresProps extends HTMLAttributes<HTMLUListElement> {
+interface ScoresProps extends HTMLAttributes<HTMLOListElement> {
   scores: SavedScore[]
+  highlightId?: string
 }
 
-const Score = ({ name, standing, time }: ScoreProps): JSX.Element => (
-  <li className="popup-item">
-    <span className="leaderboard-name">
-      {standing === 1 || standing === 2 || standing === 3 ? (
-        <>
-          <img src={standingToImage[standing]} width={13} height={13} />
-          {name}
-        </>
-      ) : (
-        `${standing} ${name}`
-      )}
-    </span>
-    <span className="popup-item-key">
-      <span>{readableTime(time)}</span>
-    </span>
-  </li>
-)
-
-export const Scores = ({ scores, ...props }: ScoresProps): JSX.Element => (
-  <ul {...props}>
-    {scores.map((score, index) => (
-      <Score {...score} standing={index + 1} key={index} />
-    ))}
-  </ul>
+export const Scores = ({ scores, highlightId, className = '', ...props }: ScoresProps) => (
+  <ol className={`scores ${className}`} {...props}>
+    {scores.map(({ id, name, time }, index) => {
+      const standing = index + 1
+      return (
+        <li className={`score-row${id === highlightId ? ' is-new' : ''}`} key={id}>
+          <span className="score-rank">
+            {standing === 1 || standing === 2 || standing === 3 ? <img src={standingToImage[standing]} width={13} height={13} alt={`#${standing}`} /> : standing}
+          </span>
+          <span className="score-name">{name}</span>
+          <span className="score-time">{readableTime(time)}s</span>
+        </li>
+      )
+    })}
+  </ol>
 )

@@ -5,6 +5,7 @@ import type { InstancedMesh } from 'three'
 
 import { getState, mutation, useStore } from '../store'
 import type { Controls } from '../store'
+import { useHiddenInstances } from './useHiddenInstances'
 
 const e = new Euler()
 const m = new Matrix4()
@@ -17,8 +18,9 @@ interface SkidProps {
   size?: number
 }
 
-export function Skid({ count = 500, opacity = 0.5, size = 0.4 }: SkidProps): JSX.Element {
+export function Skid({ count = 500, opacity = 0.5, size = 0.4 }: SkidProps) {
   const ref = useRef<InstancedMesh>(null)
+  useHiddenInstances(ref, count)
   const [chassisBody, wheels] = useStore((state) => [state.chassisBody, state.wheels])
 
   let brake: Controls['brake']

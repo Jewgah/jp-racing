@@ -58,9 +58,9 @@ interface TrackGLTF extends GLTF {
   }
 }
 
-export function Track(): JSX.Element {
+export function Track() {
   const level = useStore((state) => state.level)
-  const { nodes: n, materials: m } = useGLTF('/models/track-draco.glb') as TrackGLTF
+  const { nodes: n, materials: m } = useGLTF('models/track-draco.glb') as unknown as TrackGLTF
   const config = { receiveShadow: true, castShadow: true, 'material-roughness': 1 }
   const birds = useRef<Group>(null!)
   const clouds = useRef<Group>(null!)
@@ -84,7 +84,7 @@ export function Track(): JSX.Element {
         <mesh geometry={n.terrain.geometry} material={n.terrain.material} {...config} />
         <mesh geometry={n.water.geometry}>
           <MeshDistortMaterial speed={4} map={m.ColorPaletteWater.map} roughness={0} side={DoubleSide} />
-          <ToggledPositionalAudio url="/sounds/water.mp3" loop autoplay distance={10} />
+          <ToggledPositionalAudio url="sounds/water.mp3" loop autoplay distance={10} />
         </mesh>
       </group>
       <group ref={birds}>

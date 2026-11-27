@@ -10,13 +10,13 @@ import { HideMouse, Keyboard } from './controls'
 import { Cameras } from './effects'
 import { BoundingBox, Ramp, Track, Vehicle, Goal, Train, Heightmap } from './models'
 import { angularVelocity, levelLayer, position, rotation, useStore } from './store'
-import { Checkpoint, Clock, Speed, Minimap, Intro, Help, Editor, LeaderBoard, Finished, PickColor } from './ui'
+import { Checkpoint, Clock, Credit, Speed, Minimap, Intro, Help, Editor, LeaderBoard, Finished, PickColor, TouchControls } from './ui'
 import { useToggle } from './useToggle'
 
 const layers = new Layers()
 layers.enable(levelLayer)
 
-export function App(): JSX.Element {
+export function App() {
   const [light, setLight] = useState<DirectionalLight | null>(null)
   const [actions, dpr, editor, shadows] = useStore((s) => [s.actions, s.dpr, s.editor, s.shadows])
   const { onCheckpoint, onFinish, onStart } = actions
@@ -31,15 +31,15 @@ export function App(): JSX.Element {
 
   return (
     <Intro>
-      <Canvas key={`${dpr}${shadows}`} dpr={[1, dpr]} shadows={shadows} camera={{ position: [0, 5, 15], fov: 50 }}>
+      <Canvas key={`${dpr}${shadows}`} dpr={[1, dpr]} shadows={shadows ? 'percentage' : false} camera={{ position: [0, 5, 15], fov: 50 }}>
         <fog attach="fog" args={['white', 0, 500]} />
         <Sky sunPosition={[100, 10, 100]} distance={1000} />
-        <ambientLight layers={layers} intensity={0.1} />
+        <ambientLight layers={layers} intensity={0.3} />
         <directionalLight
           ref={setLight}
           layers={layers}
           position={[0, 50, 150]}
-          intensity={1}
+          intensity={2.4}
           shadow-bias={-0.001}
           shadow-mapSize={[4096, 4096]}
           shadow-camera-left={-150}
@@ -78,6 +78,8 @@ export function App(): JSX.Element {
       <ToggledCheckpoint />
       <LeaderBoard />
       <PickColor />
+      <TouchControls />
+      <Credit compact />
       <HideMouse />
       <Keyboard />
     </Intro>

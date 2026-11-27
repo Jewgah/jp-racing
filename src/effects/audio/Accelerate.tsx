@@ -30,5 +30,5 @@ export const AccelerateAudio = () => {
     }
   }, [])
 
-  return <PositionalAudio ref={ref} url="/sounds/accelerate.mp3" loop distance={5} />
+  return <PositionalAudio ref={ref} url="sounds/accelerate.mp3" loop distance={5} />
 }

@@ -42,9 +42,9 @@ source: https://sketchfab.com/3d-models/train-locomotive-sd40-2-bdeadf60bf774adc
 title: Train , Locomotive SD40-2
 */
 
-export function Train({ args = [38, 8, 10], position = [-145.84, 3.42, 54.67], rotation = [0, -0.09, 0] }: BoxProps): JSX.Element {
+export function Train({ args = [38, 8, 10], position = [-145.84, 3.42, 54.67], rotation = [0, -0.09, 0] }: BoxProps) {
   const ref = useRef<Group>(null!)
-  const { animations, nodes: n, materials: m } = useGLTF('/models/track-draco.glb') as TrainGLTF
+  const { animations, nodes: n, materials: m } = useGLTF('models/track-draco.glb') as unknown as TrainGLTF
   const [, api] = useBox(() => ({ mass: 10000, type: 'Kinematic', args, position, rotation }), ref, [args, position, rotation])
   const { actions } = useAnimations(animations, ref)
   const config = { receiveShadow: true, castShadow: true, 'material-roughness': 1 }
@@ -68,7 +68,7 @@ export function Train({ args = [38, 8, 10], position = [-145.84, 3.42, 54.67], r
       <mesh geometry={n.train_7.geometry} material={m.steelClone} {...config} />
       <mesh geometry={n.train_8.geometry} material={m.lightRedClone} {...config} />
       <mesh geometry={n.train_9.geometry} material={m.darkClone} {...config} />
-      <ToggledPositionalAudio url="/sounds/train.mp3" loop autoplay distance={5} />
+      <ToggledPositionalAudio url="sounds/train.mp3" loop autoplay distance={5} />
     </group>
   )
 }

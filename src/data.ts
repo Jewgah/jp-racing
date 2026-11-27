@@ -1,54 +1,80 @@
-import { createClient } from '@supabase/supabase-js'
-import type { Provider } from '@supabase/supabase-js'
-import type { Setter } from './store'
+// Local best-lap leaderboard. The upstream game used a hosted Supabase table with
+// OAuth sign-in; this fork keeps every lap in the browser so it works offline,
+// needs no account and ships no keys.
 
-interface IScore {
-  name: string
-  thumbnail: string
-  time: number
-}
-
-export interface SavedScore extends IScore {
+export interface SavedScore {
   id: string
+  name: string
+  time: number
+  date: number
 }
 
-const { VITE_SUPABASE_ANON_KEY, VITE_SUPABASE_URL } = import.meta.env
+const SCORES_KEY = 'jp-racing:scores'
+const NAME_KEY = 'jp-racing:driver'
+const MAX_SCORES = 50
+// Laps faster than this are physically impossible on this track (upstream used the same floor).
+export const MIN_VALID_TIME = 1337
 
-const config = {
-  key: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJyb2xlIjoiYW5vbiIsImlhdCI6MTYyMzMyMTAxOCwiZXhwIjoxOTM4ODk3MDE4fQ.YISggSEzSk6WsMNkvN2a5MHYWBVjQ84nHwWYne9sTA0',
-  url: 'https://tfvnrohsjcgsekfnggks.supabase.co',
+const isScore = (v: unknown): v is SavedScore => {
+  if (!v || typeof v !== 'object') return false
+  const s = v as Record<string, unknown>
+  return typeof s.id === 'string' && typeof s.name === 'string' && typeof s.time === 'number' && Number.isFinite(s.time) && typeof s.date === 'number'
 }
 
-const isString = (v: unknown): v is string => typeof v === 'string'
-
-const key = isString(VITE_SUPABASE_ANON_KEY) ? VITE_SUPABASE_ANON_KEY : config.key
-const url = isString(VITE_SUPABASE_URL) ? VITE_SUPABASE_URL : config.url
-
-const client = createClient(url, key)
-
-export const getScores = (limit = 50): PromiseLike<SavedScore[]> =>
-  client
-    .from('scores')
-    .select()
-    .gt('time', 1337)
-    .limit(limit)
-    .order('time')
-    .then(({ data }) => data || [])
-
-export const insertScore = ({ name, thumbnail, time }: IScore): PromiseLike<SavedScore[]> =>
-  client
-    .from('scores')
-    .insert({ name, thumbnail, time })
-    .then(({ data }) => data || [])
-
-export const setupSession = (set: Setter) => {
-  set({ session: client.auth.session() })
-
-  client.auth.onAuthStateChange((_event, session) => {
-    set({ session })
-  })
+const read = (): SavedScore[] => {
+  try {
+    const parsed: unknown = JSON.parse(localStorage.getItem(SCORES_KEY) || '[]')
+    return Array.isArray(parsed) ? parsed.filter(isScore) : []
+  } catch {
+    return []
+  }
 }
 
-export const authenticateUser = (provider: Provider) => client.auth.signIn({ provider })
+const write = (scores: SavedScore[]) => {
+  try {
+    localStorage.setItem(SCORES_KEY, JSON.stringify(scores))
+  } catch {
+    // Private mode or quota exceeded: the lap still shows on screen, it just is not kept.
+  }
+}
 
-export const unAuthenticateUser = () => client.auth.signOut()
+const sortScores = (scores: SavedScore[]) => [...scores].sort((a, b) => a.time - b.time)
+
+export const getScores = (limit = MAX_SCORES): SavedScore[] =>
+  sortScores(read())
+    .filter((s) => s.time > MIN_VALID_TIME)
+    .slice(0, limit)
+
+export const getBestTime = (): number | null => getScores(1)[0]?.time ?? null
+
+/** Saves a lap and returns it together with its 1-based rank, or rank 0 if it fell off the board. */
+export const insertScore = (name: string, time: number): { score: SavedScore; rank: number } => {
+  const score: SavedScore = {
+    id: `${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 8)}`,
+    name: sanitizeName(name),
+    time,
+    date: Date.now(),
+  }
+  const scores = sortScores([...read(), score]).slice(0, MAX_SCORES)
+  write(scores)
+  const rank = getScores().findIndex((s) => s.id === score.id) + 1
+  return { score, rank }
+}
+
+export const sanitizeName = (name: string): string => name.replace(/\s+/g, ' ').trim().slice(0, 16) || 'Driver'
+
+export const getDriverName = (): string => {
+  try {
+    return localStorage.getItem(NAME_KEY) || ''
+  } catch {
+    return ''
+  }
+}
+
+export const setDriverName = (name: string) => {
+  try {
+    localStorage.setItem(NAME_KEY, sanitizeName(name))
+  } catch {
+    // ignore, see write()
+  }
+}

@@ -7,10 +7,10 @@ const criticalLevel = 30
 const warningLevel = 60
 
 const getBlink = () => mutation.boost <= criticalLevel
-const getColor = () => (mutation.boost > warningLevel ? '#00FF00' : mutation.boost > criticalLevel ? '#FFE600' : '#FF0000')
+const getColor = () => (mutation.boost > warningLevel ? '#7df9ff' : mutation.boost > criticalLevel ? '#a78bfa' : '#ff5d8f')
 const getLength = () => `${(100 * (1 - mutation.boost / maxBoost)).toFixed()}%`
 
-export function Boost(): JSX.Element {
+export function Boost() {
   const ref = useRef<SVGPathElement>(null)
 
   let blink = getBlink()

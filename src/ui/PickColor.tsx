@@ -2,7 +2,7 @@ import { HexColorPicker } from 'react-colorful'
 import { setState, useStore } from '../store'
 import { useToggle } from '../useToggle'
 
-export function PickColor(): JSX.Element {
+export function PickColor() {
   const [color, pickcolor] = useStore((state) => [state.color, state.pickcolor])
 
   const setColor = (color: string) => setState({ color })

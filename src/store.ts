@@ -1,11 +1,10 @@
 import { createRef } from 'react'
-import create from 'zustand'
-import shallow from 'zustand/shallow'
+import { create } from 'zustand'
+import { useShallow } from 'zustand/react/shallow'
 import type { RefObject } from 'react'
 import type { PublicApi, WheelInfoOptions } from '@react-three/cannon'
-import type { Session } from '@supabase/supabase-js'
 import type { Group } from 'three'
-import type { GetState, SetState, StateSelector } from 'zustand'
+import type { StoreApi } from 'zustand'
 
 import { keys } from './keys'
 
@@ -117,8 +116,8 @@ const actionInputMap: ActionInputMap = {
   sound: ['u'],
 }
 
-type Getter = GetState<IState>
-export type Setter = SetState<IState>
+type Getter = StoreApi<IState>['getState']
+export type Setter = StoreApi<IState>['setState']
 
 type BaseState = Record<Booleans, boolean>
 
@@ -138,7 +137,7 @@ export interface IState extends BaseState {
   api: PublicApi | null
   bestCheckpoint: number
   camera: Camera
-  chassisBody: RefObject<Group>
+  chassisBody: RefObject<Group | null>
   checkpoint: number
   color: string
   controls: Controls
@@ -147,20 +146,19 @@ export interface IState extends BaseState {
   dpr: number
   finished: number
   get: Getter
-  level: RefObject<Group>
-  session: Session | null
+  level: RefObject<Group | null>
   set: Setter
   start: number
   vehicleConfig: VehicleConfig
   wheelInfo: WheelInfo
-  wheels: [RefObject<Group>, RefObject<Group>, RefObject<Group>, RefObject<Group>]
+  wheels: [RefObject<Group | null>, RefObject<Group | null>, RefObject<Group | null>, RefObject<Group | null>]
   keyInput: string | null
 }
 
 const setExclusiveBoolean = (set: Setter, boolean: ExclusiveBoolean) => () =>
   set((state) => ({ ...exclusiveBooleans.reduce((o, key) => ({ ...o, [key]: key === boolean ? !state[boolean] : false }), state) }))
 
-const useStoreImpl = create<IState>((set: SetState<IState>, get: GetState<IState>) => {
+const useStoreImpl = create<IState>()((set: Setter, get: Getter) => {
   const controlActions = keys(controls).reduce<Record<Control, (value: boolean) => void>>((o, control) => {
     o[control] = (value: boolean) => set((state) => ({ controls: { ...state.controls, [control]: value } }))
     return o
@@ -214,7 +212,7 @@ const useStoreImpl = create<IState>((set: SetState<IState>, get: GetState<IState
     camera: cameras[0],
     chassisBody: createRef<Group>(),
     checkpoint: 0,
-    color: '#FFFF00',
+    color: '#4cc9f0',
     controls,
     keyBindingsWithError: [],
     dpr,
@@ -222,7 +220,6 @@ const useStoreImpl = create<IState>((set: SetState<IState>, get: GetState<IState
     get,
     keyInput: null,
     level: createRef<Group>(),
-    session: null,
     set,
     start: 0,
     vehicleConfig,
@@ -249,9 +246,11 @@ export const mutation: Mutation = {
 }
 
 // Make the store shallow compare by default
-const useStore = <T>(sel: StateSelector<IState, T>) => useStoreImpl(sel, shallow)
-Object.assign(useStore, useStoreImpl)
+const useStore = <T>(sel: (state: IState) => T): T => useStoreImpl(useShallow(sel))
 
 const { getState, setState } = useStoreImpl
 
 export { getState, setState, useStore }
+
+// Dev-only handle for browser tests (stripped from production builds).
+if (import.meta.env.DEV) Object.assign(window, { __jpRacingStore: useStoreImpl, __jpRacingMutation: mutation })

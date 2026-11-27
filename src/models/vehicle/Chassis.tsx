@@ -9,7 +9,7 @@ import { Color, Vector3, MathUtils } from 'three'
 import type { PropsWithChildren } from 'react'
 import type { BoxProps } from '@react-three/cannon'
 import type { GLTF } from 'three-stdlib'
-import type { BoxBufferGeometry, Group, Mesh, MeshStandardMaterial, PositionalAudio as PositionalAudioImpl } from 'three'
+import type { BoxGeometry, Group, Mesh, MeshStandardMaterial, PositionalAudio as PositionalAudioImpl } from 'three'
 import type { CollideEvent } from '@react-three/cannon'
 
 import { getState, setState, mutation, useStore } from '../../store'
@@ -61,7 +61,7 @@ interface ChassisGLTF extends GLTF {
   }
 }
 
-type MaterialMesh = Mesh<BoxBufferGeometry, MeshStandardMaterial>
+type MaterialMesh = Mesh<BoxGeometry, MeshStandardMaterial>
 
 const gears = 10
 const c = new Color()
@@ -75,7 +75,7 @@ export const Chassis = forwardRef<Group, PropsWithChildren<BoxProps>>(({ args = 
   const chassis_1 = useRef<MaterialMesh>(null!)
   const crashAudio = useRef<PositionalAudioImpl>(null!)
   const [maxSpeed] = useStore((s) => [s.vehicleConfig.maxSpeed])
-  const { nodes: n, materials: m } = useGLTF('/models/chassis-draco.glb') as ChassisGLTF
+  const { nodes: n, materials: m } = useGLTF('models/chassis-draco.glb') as unknown as ChassisGLTF
 
   const onCollide = useCallback(
     debounce<(e: CollideEvent) => void>((e) => {
@@ -161,7 +161,7 @@ export const Chassis = forwardRef<Group, PropsWithChildren<BoxProps>>(({ args = 
         />
       </group>
       {children}
-      <PositionalAudio ref={crashAudio} url="/sounds/crash.mp3" loop={false} distance={5} />
+      <PositionalAudio ref={crashAudio} url="sounds/crash.mp3" loop={false} distance={5} />
     </group>
   )
 })

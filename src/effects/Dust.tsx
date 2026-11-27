@@ -1,15 +1,15 @@
-import { Vector3, Matrix4, Object3D, Quaternion, MathUtils } from 'three'
+import { Vector3, Matrix4, Object3D, MathUtils } from 'three'
 import { useRef } from 'react'
 import { useFrame } from '@react-three/fiber'
 import type { InstancedMesh } from 'three'
 
 import { getState, mutation, useStore } from '../store'
 import type { Controls } from '../store'
+import { useHiddenInstances } from './useHiddenInstances'
 
 const v = new Vector3()
 const m = new Matrix4()
 const o = new Object3D()
-const q = new Quaternion()
 
 interface DustProps {
   count?: number
@@ -17,9 +17,10 @@ interface DustProps {
   size?: number
 }
 
-export function Dust({ count = 200, opacity = 0.1, size = 1 }: DustProps): JSX.Element {
+export function Dust({ count = 200, opacity = 0.1, size = 1 }: DustProps) {
   const wheels = useStore((state) => state.wheels)
   const ref = useRef<InstancedMesh>(null)
+  useHiddenInstances(ref, count)
 
   let brake: Controls['brake']
   let i = 0
@@ -41,8 +42,9 @@ export function Dust({ count = 200, opacity = 0.1, size = 1 }: DustProps): JSX.E
       // Shrink old one
       for (i = 0; i < count; i++) {
         ref.current.getMatrixAt(i, m)
-        m.decompose(o.position, q, v)
-        o.scale.setScalar(Math.max(0, v.x - 0.005))
+        // three r15x+ decompose() reports scale 1 for a zero-scale matrix, which made dead particles respawn full size
+        o.position.setFromMatrixPosition(m)
+        o.scale.setScalar(Math.max(0, v.setFromMatrixScale(m).x - 0.005))
         o.updateMatrix()
         ref.current.setMatrixAt(i, o.matrix)
         ref.current.instanceMatrix.needsUpdate = true

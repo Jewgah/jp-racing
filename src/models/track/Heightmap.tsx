@@ -1,12 +1,11 @@
+import { useMemo } from 'react'
 import { useTexture } from '@react-three/drei'
 import { useHeightfield } from '@react-three/cannon'
-import { useAsset } from 'use-asset'
 
-import type { Texture } from 'three'
 import type { HeightfieldArgs, HeightfieldProps } from '@react-three/cannon'
 
 const canvas = document.createElement('canvas')
-const context = canvas.getContext('2d')
+const context = canvas.getContext('2d', { willReadFrequently: true })
 if (context) context.imageSmoothingEnabled = false
 
 /**
@@ -47,8 +46,8 @@ function createHeightfieldMatrix(image: HTMLImageElement): number[][] {
 type HeightmapProps = Required<Pick<HeightfieldProps, 'position' | 'rotation'>> & Required<Pick<HeightfieldArgs['1'], 'elementSize'>>
 
 export function Heightmap({ elementSize, position, rotation }: HeightmapProps) {
-  const heightmap = useTexture('/textures/heightmap_1024.png')
-  const heights = useAsset<number[][], Texture[]>(async () => createHeightfieldMatrix(heightmap.image), heightmap)
+  const heightmap = useTexture('textures/heightmap_1024.png')
+  const heights = useMemo(() => createHeightfieldMatrix(heightmap.image as HTMLImageElement), [heightmap])
   useHeightfield(() => ({ args: [heights, { elementSize }], position, rotation }), undefined, [elementSize, position, rotation])
   return null
 }

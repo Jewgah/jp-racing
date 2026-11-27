@@ -30,7 +30,7 @@ function useLevelGeometricProperties(): [Box3, Vector3, Vector3] {
   return [box, center, dimensions]
 }
 
-function MinimapTexture({ buffer }: { buffer: WebGLRenderTarget }): JSX.Element {
+function MinimapTexture({ buffer }: { buffer: WebGLRenderTarget }) {
   const camera = useRef<OrthographicCamera>(null)
   const gl = useThree((state) => state.gl)
   const scene = useThree((state) => state.scene)
@@ -58,23 +58,29 @@ function MinimapTexture({ buffer }: { buffer: WebGLRenderTarget }): JSX.Element 
   return <OrthographicCameraComponent ref={camera} makeDefault={false} rotation={[-Math.PI / 2, 0, 0]} near={20} far={500} />
 }
 
-export function Minimap({ size = 200 }): JSX.Element {
+export function Minimap({ size: maxSize = 200 }) {
   const player = useRef<Sprite>(null)
   const miniMap = useRef<Sprite>(null)
   const miniMapCamera = useRef<OrthographicCamera>(null)
   const [virtualScene] = useState(() => new Scene())
   const mask = useTexture('textures/mask.svg')
   const cursor = useTexture('textures/cursor.svg')
-  const buffer = useFBO(size * 2, size * 2)
   const {
     gl,
     camera,
     scene,
     size: { height, width },
   } = useThree()
+  // Portrait phones: a smaller map tucked under the lap clock, so the touch pads own the bottom edge.
+  const compact = width < 600
+  const size = compact ? Math.min(maxSize, 110) : maxSize
+  const buffer = useFBO(size * 2, size * 2)
   const [, levelCenter, levelDimensions] = useLevelGeometricProperties()
   const chassisBody = useStore((state) => state.chassisBody)
-  const screenPosition = useMemo(() => new Vector3(width / -2 - size / -2 + 30, height / -2 - size / -2 + 30, 0), [height, width, size])
+  const screenPosition = useMemo(
+    () => new Vector3(width / -2 + size / 2 + (compact ? 16 : 30), compact ? height / 2 - size / 2 - 96 : height / -2 + size / 2 + 30, 0),
+    [height, width, size, compact],
+  )
 
   useFrame(() => {
     if (!miniMap.current || !miniMapCamera.current) return
